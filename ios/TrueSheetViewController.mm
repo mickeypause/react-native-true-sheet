@@ -58,6 +58,11 @@ static BOOL TrueSheetPositionStateEquals(TrueSheetPositionState a, TrueSheetPosi
   TrueSheetBlurView *_blurView;
   TrueSheetGrabberView *_grabberView;
   TrueSheetDetentCalculator *_detentCalculator;
+
+  // Native header
+  UINavigationController *_navController;
+  UIViewController *_innerViewController;
+  BOOL _nativeHeaderSetup;
 }
 
 #pragma mark - Initialization
@@ -894,6 +899,114 @@ static BOOL TrueSheetPositionStateEquals(TrueSheetPositionState a, TrueSheetPosi
 
   [self setupBackground];
   [self setupGrabber];
+
+  if (_nativeHeaderSetup) {
+    [self updateNativeHeaderAppearance];
+  }
+}
+
+#pragma mark - Native Header
+
+- (UIView *)containerTargetView {
+  if (_nativeHeader) {
+    if (!_nativeHeaderSetup) {
+      [self setupNativeNavigation];
+      _nativeHeaderSetup = YES;
+    }
+    return _innerViewController.view;
+  }
+  return self.view;
+}
+
+- (void)setupNativeNavigation {
+  _innerViewController = [[UIViewController alloc] init];
+  _innerViewController.view.backgroundColor = [UIColor clearColor];
+
+  _navController = [[UINavigationController alloc] initWithRootViewController:_innerViewController];
+  _navController.view.backgroundColor = [UIColor clearColor];
+
+  [self addChildViewController:_navController];
+  [self.view addSubview:_navController.view];
+
+  _navController.view.translatesAutoresizingMaskIntoConstraints = NO;
+  [NSLayoutConstraint activateConstraints:@[
+    [_navController.view.leadingAnchor constraintEqualToAnchor:self.view.leadingAnchor],
+    [_navController.view.trailingAnchor constraintEqualToAnchor:self.view.trailingAnchor],
+    [_navController.view.topAnchor constraintEqualToAnchor:self.view.topAnchor],
+    [_navController.view.bottomAnchor constraintEqualToAnchor:self.view.bottomAnchor],
+  ]];
+
+  [_navController didMoveToParentViewController:self];
+
+  // Bring grabber in front of nav controller
+  if (_grabberView) {
+    [self.view bringSubviewToFront:_grabberView];
+  }
+
+  [self updateNativeHeaderAppearance];
+}
+
+- (void)updateNativeHeaderAppearance {
+  if (!_navController || !_innerViewController) {
+    return;
+  }
+
+  UINavigationBarAppearance *standardAppearance = [[UINavigationBarAppearance alloc] init];
+  [standardAppearance configureWithDefaultBackground];
+
+  UINavigationBarAppearance *scrollEdgeAppearance = [[UINavigationBarAppearance alloc] init];
+  [scrollEdgeAppearance configureWithTransparentBackground];
+  scrollEdgeAppearance.shadowColor = nil;
+
+  UINavigationBar *navBar = _navController.navigationBar;
+  navBar.standardAppearance = standardAppearance;
+  navBar.scrollEdgeAppearance = scrollEdgeAppearance;
+  navBar.prefersLargeTitles = NO;
+  _innerViewController.navigationItem.largeTitleDisplayMode = UINavigationItemLargeTitleDisplayModeNever;
+}
+
+- (void)setNavBarItemView:(UIView *)view forType:(NSInteger)type {
+  if (!_innerViewController) {
+    return;
+  }
+
+  switch (type) {
+    case 0: // Title
+      _innerViewController.navigationItem.titleView = view;
+      break;
+    case 1: { // Left
+      UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:view];
+      _innerViewController.navigationItem.leftBarButtonItem = item;
+      break;
+    }
+    case 2: { // Right
+      UIBarButtonItem *item = [[UIBarButtonItem alloc] initWithCustomView:view];
+      _innerViewController.navigationItem.rightBarButtonItem = item;
+      break;
+    }
+    default:
+      break;
+  }
+}
+
+- (void)removeNavBarItemViewForType:(NSInteger)type {
+  if (!_innerViewController) {
+    return;
+  }
+
+  switch (type) {
+    case 0: // Title
+      _innerViewController.navigationItem.titleView = nil;
+      break;
+    case 1: // Left
+      _innerViewController.navigationItem.leftBarButtonItem = nil;
+      break;
+    case 2: // Right
+      _innerViewController.navigationItem.rightBarButtonItem = nil;
+      break;
+    default:
+      break;
+  }
 }
 
 #pragma mark - UISheetPresentationControllerDelegate

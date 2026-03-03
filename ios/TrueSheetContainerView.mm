@@ -15,6 +15,7 @@
 #import "TrueSheetViewController.h"
 #import "core/TrueSheetKeyboardObserver.h"
 #import "utils/WindowUtil.h"
+#import "TrueSheetNavBarItemView.h"
 
 #import <react/renderer/components/TrueSheetSpec/ComponentDescriptors.h>
 #import <react/renderer/components/TrueSheetSpec/EventEmitters.h>
@@ -40,6 +41,8 @@ using namespace facebook::react;
 @end
 
 @interface TrueSheetContainerView () <TrueSheetContentViewDelegate, TrueSheetHeaderViewDelegate>
+@interface TrueSheetContainerView () <TrueSheetContentViewDelegate, TrueSheetHeaderViewDelegate,
+                                      TrueSheetNavBarItemViewDelegate>
 @end
 
 @implementation TrueSheetContainerView {
@@ -48,6 +51,37 @@ using namespace facebook::react;
   TrueSheetFooterView *_footerView;
   TrueSheetKeyboardObserver *_keyboardObserver;
   BOOL _scrollableSet;
+
+  TrueSheetNavBarItemView *_navBarTitleView;
+  TrueSheetNavBarItemView *_navBarLeftView;
+  TrueSheetNavBarItemView *_navBarRightView;
+
+  // Stored wrappers for deferred delegate notification.
+  // Fabric mounts bottom-up so nav bar item wrappers arrive before
+  // TrueSheetView sets itself as our delegate.
+  UIView *_pendingNavBarTitleWrapper;
+  UIView *_pendingNavBarLeftWrapper;
+  UIView *_pendingNavBarRightWrapper;
+}
+
+@synthesize delegate = _delegate;
+
+- (void)setDelegate:(id<TrueSheetContainerViewDelegate>)delegate {
+  _delegate = delegate;
+
+  // Flush any nav bar item wrappers that arrived before the delegate was set.
+  if (delegate) {
+    [self flushPendingNavBarWrapper:_pendingNavBarTitleWrapper type:TSNavBarItemTypeTitle];
+    [self flushPendingNavBarWrapper:_pendingNavBarLeftWrapper type:TSNavBarItemTypeLeft];
+    [self flushPendingNavBarWrapper:_pendingNavBarRightWrapper type:TSNavBarItemTypeRight];
+  }
+}
+
+- (void)flushPendingNavBarWrapper:(UIView *)wrapper type:(TSNavBarItemType)type {
+  if (!wrapper) return;
+  if ([_delegate respondsToSelector:@selector(containerViewNavBarItemDidMount:type:)]) {
+    [_delegate containerViewNavBarItemDidMount:wrapper type:(NSInteger)type];
+  }
 }
 
 #pragma mark - Initialization
@@ -145,6 +179,22 @@ using namespace facebook::react;
     }
     _footerView = (TrueSheetFooterView *)childComponentView;
   }
+
+  if ([childComponentView isKindOfClass:[TrueSheetNavBarItemView class]]) {
+    TrueSheetNavBarItemView *navBarItem = (TrueSheetNavBarItemView *)childComponentView;
+    navBarItem.delegate = self;
+    switch (navBarItem.itemType) {
+      case TSNavBarItemTypeTitle:
+        _navBarTitleView = navBarItem;
+        break;
+      case TSNavBarItemTypeLeft:
+        _navBarLeftView = navBarItem;
+        break;
+      case TSNavBarItemTypeRight:
+        _navBarRightView = navBarItem;
+        break;
+    }
+  }
 }
 
 - (void)unmountChildComponentView:(UIView<RCTComponentViewProtocol> *)childComponentView index:(NSInteger)index {
@@ -161,6 +211,26 @@ using namespace facebook::react;
 
   if ([childComponentView isKindOfClass:[TrueSheetFooterView class]]) {
     _footerView = nil;
+  }
+
+  if ([childComponentView isKindOfClass:[TrueSheetNavBarItemView class]]) {
+    TrueSheetNavBarItemView *navBarItem = (TrueSheetNavBarItemView *)childComponentView;
+    NSInteger type = navBarItem.itemType;
+    navBarItem.delegate = nil;
+    switch (type) {
+      case TSNavBarItemTypeTitle:
+        _navBarTitleView = nil;
+        break;
+      case TSNavBarItemTypeLeft:
+        _navBarLeftView = nil;
+        break;
+      case TSNavBarItemTypeRight:
+        _navBarRightView = nil;
+        break;
+    }
+    if ([self.delegate respondsToSelector:@selector(containerViewNavBarItemDidUnmount:)]) {
+      [self.delegate containerViewNavBarItemDidUnmount:type];
+    }
   }
 
   [super unmountChildComponentView:childComponentView index:index];
@@ -221,6 +291,45 @@ using namespace facebook::react;
 
   _contentView.keyboardObserver = nil;
   _footerView.keyboardObserver = nil;
+}
+
+#pragma mark - TrueSheetNavBarItemViewDelegate
+
+- (void)navBarItemViewDidMount:(UIView *)wrapperView type:(TSNavBarItemType)type {
+  // Store wrapper for deferred notification if delegate isn't set yet.
+  switch (type) {
+    case TSNavBarItemTypeTitle:
+      _pendingNavBarTitleWrapper = wrapperView;
+      break;
+    case TSNavBarItemTypeLeft:
+      _pendingNavBarLeftWrapper = wrapperView;
+      break;
+    case TSNavBarItemTypeRight:
+      _pendingNavBarRightWrapper = wrapperView;
+      break;
+  }
+
+  if ([self.delegate respondsToSelector:@selector(containerViewNavBarItemDidMount:type:)]) {
+    [self.delegate containerViewNavBarItemDidMount:wrapperView type:(NSInteger)type];
+  }
+}
+
+- (void)navBarItemViewDidUnmount:(TSNavBarItemType)type {
+  switch (type) {
+    case TSNavBarItemTypeTitle:
+      _pendingNavBarTitleWrapper = nil;
+      break;
+    case TSNavBarItemTypeLeft:
+      _pendingNavBarLeftWrapper = nil;
+      break;
+    case TSNavBarItemTypeRight:
+      _pendingNavBarRightWrapper = nil;
+      break;
+  }
+
+  if ([self.delegate respondsToSelector:@selector(containerViewNavBarItemDidUnmount:)]) {
+    [self.delegate containerViewNavBarItemDidUnmount:(NSInteger)type];
+  }
 }
 
 @end

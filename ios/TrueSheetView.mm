@@ -261,6 +261,9 @@ using namespace facebook::react;
   _insetAdjustment = (NSInteger)newProps.insetAdjustment;
   _controller.insetAdjustment = _insetAdjustment;
 
+  // Native header props
+  _controller.nativeHeader = newProps.nativeHeader;
+
   if (_containerView) {
     _containerView.scrollableEnabled = _scrollable;
     _containerView.insetAdjustment = _insetAdjustment;
@@ -367,12 +370,15 @@ using namespace facebook::react;
   }
 
   _containerView = (TrueSheetContainerView *)childComponentView;
-  _containerView.delegate = self;
 
+  // Call containerTargetView first to ensure the nav controller is set up
+  // before the delegate flush triggers nav bar item installation.
+  UIView *targetView = [_controller containerTargetView];
+  _containerView.delegate = self;
   [_touchHandler attachToView:_containerView];
-  [_controller.view addSubview:_containerView];
-  [LayoutUtil pinView:_containerView toParentView:_controller.view edges:UIRectEdgeAll];
-  [_controller.view bringSubviewToFront:_containerView];
+  [targetView addSubview:_containerView];
+  [LayoutUtil pinView:_containerView toParentView:targetView edges:UIRectEdgeAll];
+  [targetView bringSubviewToFront:_containerView];
 
   CGFloat contentHeight = [_containerView contentHeight];
   if (contentHeight > 0) {
@@ -576,6 +582,14 @@ using namespace facebook::react;
 // When the ScrollView changes (e.g. conditional remount), re-pin the new ScrollView.
 - (void)containerViewScrollViewDidChange {
   [_containerView setupScrollable];
+}
+
+- (void)containerViewNavBarItemDidMount:(UIView *)wrapperView type:(NSInteger)type {
+  [_controller setNavBarItemView:wrapperView forType:type];
+}
+
+- (void)containerViewNavBarItemDidUnmount:(NSInteger)type {
+  [_controller removeNavBarItemViewForType:type];
 }
 
 #pragma mark - TrueSheetViewControllerDelegate

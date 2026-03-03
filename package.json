@@ -264,6 +264,9 @@
         },
         "TrueSheetFooterView": {
           "className": "TrueSheetFooterView"
+        },
+        "TrueSheetNavBarItem": {
+          "className": "TrueSheetNavBarItemView"
         }
       }
     }

@@ -29,6 +29,19 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)containerViewHeaderDidChangeSize:(CGSize)newSize;
 
+/**
+ * Called when a nav bar item view is mounted
+ * @param wrapperView The wrapper view containing the nav bar item content
+ * @param type The type of nav bar item (0=title, 1=left, 2=right)
+ */
+- (void)containerViewNavBarItemDidMount:(UIView *)wrapperView type:(NSInteger)type;
+
+/**
+ * Called when a nav bar item view is unmounted
+ * @param type The type of nav bar item (0=title, 1=left, 2=right)
+ */
+- (void)containerViewNavBarItemDidUnmount:(NSInteger)type;
+
 @end
 
 @interface TrueSheetContainerView : RCTViewComponentView

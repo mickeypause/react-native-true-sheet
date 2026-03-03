@@ -99,6 +99,9 @@ export interface NativeProps extends ViewProps {
   scrollableOptions?: ScrollableOptionsType;
   pageSizing?: WithDefault<boolean, true>;
 
+  // Native header props (iOS)
+  nativeHeader?: WithDefault<boolean, false>;
+
   // Event handlers
   onMount?: DirectEventHandler<null>;
   onWillPresent?: DirectEventHandler<DetentInfoEventPayload>;

@@ -30,6 +30,7 @@ import TrueSheetContainerViewNativeComponent from './fabric/TrueSheetContainerVi
 import TrueSheetContentViewNativeComponent from './fabric/TrueSheetContentViewNativeComponent';
 import TrueSheetHeaderViewNativeComponent from './fabric/TrueSheetHeaderViewNativeComponent';
 import TrueSheetFooterViewNativeComponent from './fabric/TrueSheetFooterViewNativeComponent';
+import TrueSheetNavBarItemNativeComponent from './fabric/TrueSheetNavBarItemNativeComponent';
 
 import TrueSheetModule from './specs/NativeTrueSheetModule';
 
@@ -454,11 +455,19 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
       style,
       header,
       headerStyle,
+      headerTitle,
+      headerLeft,
+      headerRight,
       footer,
       footerStyle,
       insetAdjustment = 'automatic',
       ...rest
     } = this.props;
+
+    const useNativeHeader =
+      Platform.OS === 'ios' &&
+      !header &&
+      (headerTitle !== undefined || headerLeft !== undefined || headerRight !== undefined);
 
     // Trim to max 3 detents and clamp fractions
     const resolvedDetents = detents.slice(0, 3).map((detent) => {
@@ -506,6 +515,7 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
         scrollableOptions={scrollableOptions}
         pageSizing={pageSizing}
         insetAdjustment={insetAdjustment}
+        nativeHeader={useNativeHeader}
         onMount={this.onMount}
         onWillPresent={this.onWillPresent}
         onDidPresent={this.onDidPresent}
@@ -530,6 +540,21 @@ export class TrueSheet extends PureComponent<TrueSheetProps, TrueSheetState> {
               <TrueSheetHeaderViewNativeComponent style={[styles.header, headerStyle]}>
                 {isValidElement(header) ? header : createElement(header)}
               </TrueSheetHeaderViewNativeComponent>
+            )}
+            {useNativeHeader && headerTitle && (
+              <TrueSheetNavBarItemNativeComponent type="title" style={styles.navBarItem}>
+                {isValidElement(headerTitle) ? headerTitle : createElement(headerTitle)}
+              </TrueSheetNavBarItemNativeComponent>
+            )}
+            {useNativeHeader && headerLeft && (
+              <TrueSheetNavBarItemNativeComponent type="left" style={styles.navBarItem}>
+                {isValidElement(headerLeft) ? headerLeft : createElement(headerLeft)}
+              </TrueSheetNavBarItemNativeComponent>
+            )}
+            {useNativeHeader && headerRight && (
+              <TrueSheetNavBarItemNativeComponent type="right" style={styles.navBarItem}>
+                {isValidElement(headerRight) ? headerRight : createElement(headerRight)}
+              </TrueSheetNavBarItemNativeComponent>
             )}
             <TrueSheetContentViewNativeComponent
               style={scrollable ? [style, styles.scrollableContent] : style}
@@ -568,5 +593,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
+  },
+  navBarItem: {
+    position: 'absolute',
+    opacity: 0,
   },
 });

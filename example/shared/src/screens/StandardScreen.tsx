@@ -8,7 +8,9 @@ import {
   FlatListSheet,
   GestureSheet,
   NavigationSheet,
+  NativeHeaderSheet,
   PromptSheet,
+  RegularHeaderSheet,
   ScrollViewSheet,
 } from '../components/sheets';
 import { Button, Spacer } from '../components';
@@ -32,6 +34,8 @@ export const StandardScreen = ({
   const gestureSheet = useRef<TrueSheet>(null);
   const blankSheet = useRef<TrueSheet>(null);
   const navigationSheet = useRef<TrueSheet>(null);
+  const nativeHeaderSheet = useRef<TrueSheet>(null);
+  const regularHeaderSheet = useRef<TrueSheet>(null);
 
   const presentBasicSheet = async (index = 0) => {
     await basicSheet.current?.present(index);
@@ -57,6 +61,9 @@ export const StandardScreen = ({
         <Button text="TrueSheet FlatList" onPress={() => flatListSheet.current?.present()} />
         <Button text="TrueSheet Gestures" onPress={() => gestureSheet.current?.present()} />
         <Button text="Blank Sheet" onPress={() => blankSheet.current?.present()} />
+        <Spacer />
+        <Button text="Regular Header Sheet" onPress={() => regularHeaderSheet.current?.present()} />
+        <Button text="Native Header Sheet" onPress={() => nativeHeaderSheet.current?.present()} />
 
         <BasicSheet ref={basicSheet} onNavigateToTest={onNavigateToTest} />
         <PromptSheet ref={promptSheet} />
@@ -65,6 +72,8 @@ export const StandardScreen = ({
         <GestureSheet ref={gestureSheet} />
         <BlankSheet ref={blankSheet} />
         <NavigationSheet ref={navigationSheet} />
+        <RegularHeaderSheet ref={regularHeaderSheet} />
+        <NativeHeaderSheet ref={nativeHeaderSheet} />
       </View>
     </TrueSheetProvider>
   );

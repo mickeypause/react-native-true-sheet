@@ -77,6 +77,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, readonly) CGFloat screenHeight;
 
+// Native header properties
+@property (nonatomic, assign) BOOL nativeHeader;
+
+- (UIView *)containerTargetView;
+- (void)setNavBarItemView:(UIView *)view forType:(NSInteger)type;
+- (void)removeNavBarItemViewForType:(NSInteger)type;
+
 - (void)applyActiveDetent;
 - (void)setupActiveDetentWithIndex:(NSInteger)index;
 - (void)resizeToDetentIndex:(NSInteger)index;

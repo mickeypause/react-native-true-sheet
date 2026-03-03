@@ -31,7 +31,9 @@ import {
   BasicSheet,
   FlatListSheet,
   GestureSheet,
+  NativeHeaderSheet,
   PromptSheet,
+  RegularHeaderSheet,
   ScrollViewSheet,
 } from '../components/sheets';
 
@@ -68,6 +70,8 @@ const MapScreenInner = ({
   const scrollViewSheet = useRef<TrueSheet>(null);
   const flatListSheet = useRef<TrueSheet>(null);
   const gestureSheet = useRef<TrueSheet>(null);
+  const nativeHeaderSheet = useRef<TrueSheet>(null);
+  const regularHeaderSheet = useRef<TrueSheet>(null);
 
   const [anchorLeft, setAnchorLeft] = useState(false);
   const [scrollViewLoading, setScrollViewLoading] = useState(false);
@@ -185,6 +189,10 @@ const MapScreenInner = ({
           <Button text="Gestures" onPress={() => gestureSheet.current?.present()} />
         </ButtonGroup>
         <ButtonGroup>
+          <Button text="Regular Header" onPress={() => regularHeaderSheet.current?.present()} />
+          <Button text="Native Header" onPress={() => nativeHeaderSheet.current?.present()} />
+        </ButtonGroup>
+        <ButtonGroup>
           <Button
             text="ScrollView"
             loading={scrollViewLoading}
@@ -215,6 +223,8 @@ const MapScreenInner = ({
         <ScrollViewSheet ref={scrollViewSheet} />
         <FlatListSheet ref={flatListSheet} />
         <GestureSheet ref={gestureSheet} />
+        <RegularHeaderSheet ref={regularHeaderSheet} />
+        <NativeHeaderSheet ref={nativeHeaderSheet} />
       </ReanimatedTrueSheet>
     </View>
   );

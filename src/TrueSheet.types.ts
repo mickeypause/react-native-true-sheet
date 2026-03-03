@@ -424,6 +424,34 @@ export interface TrueSheetProps extends ViewProps {
   headerStyle?: StyleProp<ViewStyle>;
 
   /**
+   * A component to render as the native UINavigationBar title view.
+   * Only used when `header` is NOT set. iOS only.
+   *
+   * When any of `headerTitle`, `headerLeft`, or `headerRight` is provided,
+   * a native `UINavigationController` is embedded inside the sheet,
+   * enabling `scrollEdgeAppearance` (transparent bar at scroll top, opaque when scrolled).
+   *
+   * @platform ios
+   */
+  headerTitle?: ComponentType<unknown> | ReactElement;
+
+  /**
+   * A component to render as the native UINavigationBar left bar button item.
+   * Only used when `header` is NOT set. iOS only.
+   *
+   * @platform ios
+   */
+  headerLeft?: ComponentType<unknown> | ReactElement;
+
+  /**
+   * A component to render as the native UINavigationBar right bar button item.
+   * Only used when `header` is NOT set. iOS only.
+   *
+   * @platform ios
+   */
+  headerRight?: ComponentType<unknown> | ReactElement;
+
+  /**
    * A component that floats at the bottom of the Sheet.
    */
   footer?: ComponentType<unknown> | ReactElement;
